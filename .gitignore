@@ -5,3 +5,9 @@ mychmod
 __pycache__/
 *.o
 .DS_Store
+
+/lab_2_fork/fork_demo
+/lab_3_pipefifo/pipe_demo
+/lab_3_pipefifo/fifo_receiver
+/lab_3_pipefifo/fifo_sender
+/lab_3_pipefifo/lab_fifo
