@@ -18,17 +18,28 @@ static void on_exit_message(void)
 }
 
 /* write() is safe in a signal handler; printf() is not. */
+static void write_signal_message(const char *message, size_t length)
+{
+    while (length > 0) {
+        ssize_t written = write(STDOUT_FILENO, message, length);
+        if (written < 0 && errno == EINTR) continue;
+        if (written <= 0) break;
+        message += written;
+        length -= (size_t)written;
+    }
+}
+
 static void on_signal(int signo)
 {
     int saved_errno = errno;
     if (signo == SIGINT) {
         static const char msg[] =
             "[signal] SIGINT: interrupt received; continuing.\n";
-        (void)write(STDOUT_FILENO, msg, sizeof(msg) - 1);
+        write_signal_message(msg, sizeof(msg) - 1);
     } else if (signo == SIGTERM) {
         static const char msg[] =
             "[signal] SIGTERM: termination request received; continuing.\n";
-        (void)write(STDOUT_FILENO, msg, sizeof(msg) - 1);
+        write_signal_message(msg, sizeof(msg) - 1);
     }
     errno = saved_errno;
 }
