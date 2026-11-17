@@ -1,0 +1,7 @@
+mycat
+mygrep
+myls
+mychmod
+__pycache__/
+*.o
+.DS_Store
