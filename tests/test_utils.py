@@ -210,7 +210,15 @@ class Utilities(unittest.TestCase):
                     actual = run("mychmod", [mode, self.a], mask=mask)
                     expected = run("chmod", ["--", mode, self.b], mask=mask)
                     self.assertEqual(actual.returncode, 0, actual.stderr)
-                    self.assertEqual(expected.returncode, 0, expected.stderr)
+                    # Some GNU chmod versions warn and return 1 for a leading
+                    # minus mode when umask prevents the naive removal, even
+                    # with --. The change still succeeds; verify its exact bits.
+                    warning = (sys.platform.startswith("linux") and mode.startswith("-")
+                               and expected.returncode == 1
+                               and b"new permissions are " in expected.stderr
+                               and b", not " in expected.stderr)
+                    if not warning:
+                        self.assertEqual(expected.returncode, 0, expected.stderr)
                     self.assertEqual(self.a.stat().st_mode & 0o7777, self.b.stat().st_mode & 0o7777)
 
     def test_chmod_errors_multiple_and_symlink(self):
