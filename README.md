@@ -4,9 +4,7 @@
 
 | Работа | Тема | Исходники и инструкция |
 | --- | --- | --- |
-| Лабораторная 1, задание 1 | `mycat`, `mygrep` | [practice_1_cat_grep](practice_1_cat_grep) |
-| Лабораторная 1, задание 2 | `myls` | [practice_2_ls](practice_2_ls) |
-| Лабораторная 1, задание 3 | `mychmod` | [practice_3_chmod](practice_3_chmod) |
+| Лабораторная 1 | `mycat`, `mygrep`, `myls`, `mychmod` | [lab_1](lab_1) |
 | Лабораторная 2 | `fork`, завершение и сигналы | [lab_2_fork](lab_2_fork) |
 | Лабораторная 3 | `pipe` и FIFO | [lab_3_pipefifo](lab_3_pipefifo) |
 
@@ -21,7 +19,7 @@ make
 Либо отдельно, например:
 
 ```sh
-cd practice_1_cat_grep
+cd lab_1/practice_1_cat_grep
 make
 printf 'first\n\nsecond\n' > file.txt
 ./mycat -nE file.txt
@@ -31,13 +29,13 @@ printf 'first\n\nsecond\n' > file.txt
 Для остальных работ:
 
 ```sh
-cd practice_2_ls
+cd lab_1/practice_2_ls
 make
 ./myls -la .
 ```
 
 ```sh
-cd practice_3_chmod
+cd lab_1/practice_3_chmod
 make
 printf 'example\n' > file.txt
 ./mychmod 766 file.txt

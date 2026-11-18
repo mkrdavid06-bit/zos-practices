@@ -10,8 +10,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-PROGRAM_DIRS = {"mycat": "practice_1_cat_grep", "mygrep": "practice_1_cat_grep",
-                "myls": "practice_2_ls", "mychmod": "practice_3_chmod"}
+PROGRAM_DIRS = {"mycat": "lab_1/practice_1_cat_grep", "mygrep": "lab_1/practice_1_cat_grep",
+                "myls": "lab_1/practice_2_ls", "mychmod": "lab_1/practice_3_chmod"}
 
 
 def executable_path(tool):

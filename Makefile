@@ -1,4 +1,4 @@
-PRACTICES = practice_1_cat_grep practice_2_ls practice_3_chmod lab_2_fork lab_3_pipefifo
+PRACTICES = lab_1 lab_2_fork lab_3_pipefifo
 
 .PHONY: all clean test $(PRACTICES)
 all: $(PRACTICES)
