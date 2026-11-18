@@ -1,4 +1,4 @@
-PRACTICES = lab_1 lab_2_fork lab_3_pipefifo
+PRACTICES = lab_1 lab_2 lab_3
 
 .PHONY: all clean test $(PRACTICES)
 all: $(PRACTICES)
