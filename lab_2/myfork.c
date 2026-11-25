@@ -18,16 +18,10 @@ static void finish(void)
 static void handle_signal(int sig)
 {
     int saved_errno = errno;
-    const char *message;
-    size_t length;
-
-    if (sig == SIGINT) {
-        message = "SIGINT: interrupt received\n";
-        length = sizeof("SIGINT: interrupt received\n") - 1;
-    } else {
-        message = "SIGTERM: termination request received\n";
-        length = sizeof("SIGTERM: termination request received\n") - 1;
-    }
+    static const char interrupted[] = "SIGINT: interrupt received\n";
+    static const char terminated[] = "SIGTERM: termination request received\n";
+    const char *message = sig == SIGINT ? interrupted : terminated;
+    size_t length = sig == SIGINT ? sizeof(interrupted) - 1 : sizeof(terminated) - 1;
 
     while (length > 0) {
         ssize_t n = write(STDOUT_FILENO, message, length);

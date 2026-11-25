@@ -4,18 +4,13 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <signal.h>
-#include <errno.h>
 
 #define FIFO_PATH "./myfifo.fifo"
 
 int main(void)
 {
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-        perror("signal");
-        return 1;
-    }
-    if (mkfifo(FIFO_PATH, 0600) == -1) {
-        perror("mkfifo");
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR || mkfifo(FIFO_PATH, 0600) == -1) {
+        perror("FIFO setup");
         return 1;
     }
     puts("FIFO created. Start fifo_reader in another terminal.");
@@ -27,21 +22,13 @@ int main(void)
         return 1;
     }
     time_t now = time(NULL);
-    struct tm *tm = localtime(&now);
-    char stamp[32];
-    int failed = 0;
-    if (now == (time_t)-1 || tm == NULL ||
-        strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", tm) == 0) {
+    char *stamp = ctime(&now);
+    int failed = now == (time_t)-1 || stamp == NULL;
+    if (!failed && fprintf(output, "Sender: PID=%ld, time=%s",
+                           (long)getpid(), stamp) < 0)
         failed = 1;
-    } else if (fprintf(output, "Sender: PID=%ld, time=%s\n",
-                       (long)getpid(), stamp) < 0) {
-        perror("fprintf");
+    if (fclose(output) == EOF)
         failed = 1;
-    }
-    if (fclose(output) == EOF) {
-        perror("fclose");
-        failed = 1;
-    }
     if (failed)
         unlink(FIFO_PATH);
     return failed;

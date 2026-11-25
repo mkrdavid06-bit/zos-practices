@@ -1,6 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
@@ -10,12 +9,8 @@
 int main(void)
 {
     int fd[2];
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-        perror("signal");
-        return 1;
-    }
-    if (pipe(fd) == -1) {
-        perror("pipe");
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR || pipe(fd) == -1) {
+        perror("pipe setup");
         return 1;
     }
     pid_t pid = fork();
@@ -34,57 +29,34 @@ int main(void)
             return 1;
         }
         char message[256];
-        if (fgets(message, sizeof(message), input) == NULL) {
+        int failed = fgets(message, sizeof(message), input) == NULL;
+        if (fclose(input) == EOF)
+            failed = 1;
+        if (failed) {
             fputs("Cannot read message\n", stderr);
-            fclose(input);
             return 1;
         }
-        if (fclose(input) == EOF) {
-            perror("fclose");
-            return 1;
-        }
-        struct timespec delay = {5, 0};
-        while (nanosleep(&delay, &delay) == -1) {
-            if (errno != EINTR) {
-                perror("nanosleep");
-                return 1;
-            }
-        }
+        unsigned seconds = 5;
+        while (seconds)
+            seconds = sleep(seconds);
         time_t now = time(NULL);
-        struct tm *tm = localtime(&now);
-        char stamp[32];
-        if (now == (time_t)-1 || tm == NULL ||
-            strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", tm) == 0)
+        char *stamp = ctime(&now);
+        if (now == (time_t)-1 || stamp == NULL)
             return 1;
-        printf("Receiver: PID=%ld, time=%s\n", (long)getpid(), stamp);
+        printf("Receiver: PID=%ld, time=%s", (long)getpid(), stamp);
         printf("Received: %s", message);
         return 0;
     }
 
     close(fd[0]);
-    FILE *output = fdopen(fd[1], "w");
-    int failed = 0;
-    if (output == NULL) {
-        perror("fdopen");
-        close(fd[1]);
+    time_t now = time(NULL);
+    char *stamp = ctime(&now);
+    int failed = now == (time_t)-1 || stamp == NULL;
+    if (!failed && dprintf(fd[1], "Sender: PID=%ld, time=%s",
+                           (long)getpid(), stamp) < 0)
         failed = 1;
-    } else {
-        time_t now = time(NULL);
-        struct tm *tm = localtime(&now);
-        char stamp[32];
-        if (now == (time_t)-1 || tm == NULL ||
-            strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", tm) == 0) {
-            failed = 1;
-        } else if (fprintf(output, "Sender: PID=%ld, time=%s\n",
-                           (long)getpid(), stamp) < 0) {
-            perror("fprintf");
-            failed = 1;
-        }
-        if (fclose(output) == EOF) {
-            perror("fclose");
-            failed = 1;
-        }
-    }
+    if (close(fd[1]) == -1)
+        failed = 1;
     int status;
     pid_t result;
     do {

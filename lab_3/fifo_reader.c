@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <errno.h>
 
 #define FIFO_PATH "./myfifo.fifo"
 
@@ -24,35 +23,23 @@ int main(void)
         return 1;
     }
     char message[256];
-    int failed = 0;
-    if (fgets(message, sizeof(message), input) == NULL) {
-        fputs("Cannot read message\n", stderr);
+    int failed = fgets(message, sizeof(message), input) == NULL;
+    if (fclose(input) == EOF)
         failed = 1;
-    }
-    if (fclose(input) == EOF) {
-        perror("fclose");
+    if (unlink(FIFO_PATH) == -1)
         failed = 1;
-    }
-    if (unlink(FIFO_PATH) == -1) {
-        perror("unlink");
-        failed = 1;
-    }
-    if (failed)
+    if (failed) {
+        fputs("Cannot receive message\n", stderr);
         return 1;
-    struct timespec delay = {10, 0};
-    while (nanosleep(&delay, &delay) == -1) {
-        if (errno != EINTR) {
-            perror("nanosleep");
-            return 1;
-        }
     }
+    unsigned seconds = 10;
+    while (seconds)
+        seconds = sleep(seconds);
     time_t now = time(NULL);
-    struct tm *tm = localtime(&now);
-    char stamp[32];
-    if (now == (time_t)-1 || tm == NULL ||
-        strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", tm) == 0)
+    char *stamp = ctime(&now);
+    if (now == (time_t)-1 || stamp == NULL)
         return 1;
-    printf("Receiver: PID=%ld, time=%s\n", (long)getpid(), stamp);
+    printf("Receiver: PID=%ld, time=%s", (long)getpid(), stamp);
     printf("Received: %s", message);
     return 0;
 }
