@@ -1,11 +1,12 @@
 CC = cc
 CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
+PROGRAMS = myfork
 
 .PHONY: all clean
-all: fork_demo
+all: $(PROGRAMS)
 
-fork_demo: main.c
+%: %.c
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -f fork_demo
+	rm -f $(PROGRAMS)

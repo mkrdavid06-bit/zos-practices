@@ -1,10 +1,12 @@
-PRACTICES = practice_1_cat_grep practice_2_ls practice_3_chmod
+CC = cc
+CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
+PROGRAMS = mycat mygrep myls mychmod
 
-.PHONY: all clean $(PRACTICES)
-all: $(PRACTICES)
+.PHONY: all clean
+all: $(PROGRAMS)
 
-$(PRACTICES):
-	$(MAKE) -C $@
+%: %.c
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	@for practice in $(PRACTICES); do $(MAKE) -C $$practice clean || exit $$?; done
+	rm -f $(PROGRAMS)

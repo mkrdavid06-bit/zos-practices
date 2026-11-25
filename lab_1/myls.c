@@ -1,6 +1,12 @@
 #define _XOPEN_SOURCE 700
 #define _DARWIN_C_SOURCE 1
-#include "common.h"
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -14,6 +20,30 @@
 #elif defined(__APPLE__)
 #include <sys/types.h>
 #endif
+
+static char **flag_arguments(int argc, char **argv)
+{
+    char **out = calloc((size_t)argc + 2, sizeof(*out));
+    if (!out) { perror("calloc"); exit(1); }
+    int n = 0, end = 0;
+    out[n++] = argv[0];
+    for (int i = 1; i < argc; ++i) {
+        if (!end && !strcmp(argv[i], "--")) { end = 1; continue; }
+        if (!end && argv[i][0] == '-' && argv[i][1]) out[n++] = argv[i];
+    }
+    out[n++] = "--";
+    end = 0;
+    for (int i = 1; i < argc; ++i) {
+        if (!end && !strcmp(argv[i], "--")) { end = 1; continue; }
+        if (end || argv[i][0] != '-' || !argv[i][1]) out[n++] = argv[i];
+    }
+    return out;
+}
+
+static void file_error(const char *tool, const char *path)
+{
+    fprintf(stderr, "%s: %s: %s\n", tool, path, strerror(errno));
+}
 
 typedef struct {
     char *name, *path;
@@ -153,7 +183,7 @@ static void print_entries(Entry *entries, size_t n, int long_form, int directory
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_col) width = ws.ws_col;
         size_t cols = n, rows = 0;
         size_t *widths = allocate(n * sizeof(*widths));
-        /* ls fills columns vertically. Choose the largest fitting layout. */
+        
         for (; cols; --cols) {
             rows = (n + cols - 1) / cols;
             memset(widths, 0, n * sizeof(*widths));
@@ -219,7 +249,7 @@ int main(int argc, char **argv)
     for (int i = optind; i < count; ++i) {
         struct stat st;
         if (lstat(args[i], &st) < 0) { file_error("myls", args[i]); status = 1; continue; }
-        /* Without -l, a command-line symlink to a directory is followed. */
+        
         if (!long_form && S_ISLNK(st.st_mode)) {
             struct stat target;
             if (stat(args[i], &target) == 0 && S_ISDIR(target.st_mode)) st = target;

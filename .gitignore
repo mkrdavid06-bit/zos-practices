@@ -2,12 +2,11 @@ mycat
 mygrep
 myls
 mychmod
+myfork
+mypipe
+fifo_reader
+fifo_writer
+myfifo.fifo
 __pycache__/
 *.o
 .DS_Store
-
-/lab_2/fork_demo
-/lab_3/pipe_demo
-/lab_3/fifo_receiver
-/lab_3/fifo_sender
-/lab_3/lab_fifo

@@ -1,6 +1,17 @@
-#include "common.h"
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 #include <regex.h>
 #include <locale.h>
+
+static void file_error(const char *tool, const char *path)
+{
+    fprintf(stderr, "%s: %s: %s\n", tool, path, strerror(errno));
+}
 
 int main(int argc, char **argv)
 {
@@ -24,7 +35,7 @@ int main(int argc, char **argv)
     }
     regex_t re;
     const char *pattern = argv[optind++];
-    /* Some BSD regex libraries reject an empty regular expression. */
+    
     int rc = regcomp(&re, *pattern ? pattern : "^", REG_NOSUB |
                      (insensitive ? REG_ICASE : 0) | (extended ? REG_EXTENDED : 0));
     if (rc) {

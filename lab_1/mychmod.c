@@ -1,7 +1,17 @@
-#include "common.h"
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
-/* who: user=1, group=2, others=4. */
+static void file_error(const char *tool, const char *path)
+{
+    fprintf(stderr, "%s: %s: %s\n", tool, path, strerror(errno));
+}
+
 static mode_t spread(unsigned bits, unsigned who)
 {
     return (mode_t)(((who & 1) ? bits << 6 : 0) |
@@ -63,7 +73,7 @@ static int symbolic(const char *text, mode_t original, mode_t mask,
             if (operation == '+') current |= add;
             else if (operation == '-') current &= ~add;
             else {
-                /* GNU chmod preserves unmentioned directory set-ID bits. */
+                
                 if (directory && !mentions_s) affected &= ~(S_ISUID | S_ISGID);
                 current = (current & ~affected) | add;
             }
